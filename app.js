@@ -59,6 +59,14 @@ userInputEl.addEventListener("input", () => {
   sendBtn.disabled = userInputEl.value.trim() === "" || isGenerating;
 });
 
+// ── API key: press Enter to move focus to message input ──────────────
+apiKeyInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    userInputEl.focus();
+  }
+});
+
 // ── Send on Enter (Shift+Enter = newline) ────────────────────────────
 userInputEl.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
