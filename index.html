@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gemma 4 AI Chat</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="20" cy="20" r="20" fill="url(#grad)"/>
+            <path d="M12 20c0-4.418 3.582-8 8-8s8 3.582 8 8-3.582 8-8 8" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="20" cy="20" r="3" fill="#fff"/>
+            <defs>
+              <linearGradient id="grad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#4285F4"/>
+                <stop offset="1" stop-color="#34A853"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span>Gemma 4</span>
+        </div>
+        <button class="new-chat-btn" id="newChatBtn" title="New conversation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="model-select-wrap">
+        <label for="modelSelect">Model</label>
+        <select id="modelSelect">
+          <option value="gemma-4-27b-it">Gemma 4 27B (Recommended)</option>
+          <option value="gemma-4-31b-it">Gemma 4 31B</option>
+          <option value="gemma-4-e4b-it">Gemma 4 E4B (Fast)</option>
+          <option value="gemma-4-e2b-it">Gemma 4 E2B (Fastest)</option>
+        </select>
+      </div>
+
+      <div class="api-key-wrap">
+        <label for="apiKeyInput">API Key</label>
+        <div class="api-key-row">
+          <input
+            type="password"
+            id="apiKeyInput"
+            placeholder="Paste your Google AI Studio key"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button class="toggle-key-btn" id="toggleKeyBtn" title="Show / hide key">
+            <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+        <p class="api-key-hint">Keys are stored only in your browser's session and never sent anywhere except directly to the Google AI API.</p>
+      </div>
+
+      <div class="sidebar-footer">
+        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Get a free API key ↗</a>
+      </div>
+    </aside>
+
+    <!-- Main chat area -->
+    <main class="chat-area">
+      <header class="chat-header">
+        <button class="menu-btn" id="menuBtn" title="Toggle sidebar" aria-label="Toggle sidebar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <span class="chat-header-title">Gemma 4 AI</span>
+        <div class="header-right">
+          <span class="model-badge" id="modelBadge">gemma-4-27b-it</span>
+        </div>
+      </header>
+
+      <!-- Messages -->
+      <div class="messages" id="messages">
+        <div class="welcome">
+          <div class="welcome-icon">
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="20" cy="20" r="20" fill="url(#grad2)"/>
+              <path d="M12 20c0-4.418 3.582-8 8-8s8 3.582 8 8-3.582 8-8 8" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="20" cy="20" r="3" fill="#fff"/>
+              <defs>
+                <linearGradient id="grad2" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#4285F4"/>
+                  <stop offset="1" stop-color="#34A853"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <h1>Hi, I'm Gemma 4</h1>
+          <p>Google's latest open AI model. Ask me anything — I can help with writing, coding, reasoning, analysis, and more.</p>
+          <div class="suggestions">
+            <button class="suggestion-chip" data-text="Explain quantum computing in simple terms">💡 Explain quantum computing</button>
+            <button class="suggestion-chip" data-text="Write a Python function to reverse a linked list">💻 Reverse a linked list in Python</button>
+            <button class="suggestion-chip" data-text="What are the top 5 books I should read to become a better thinker?">📚 Books to become a better thinker</button>
+            <button class="suggestion-chip" data-text="Help me write a short cover letter for a software engineering job">✍️ Write a cover letter</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input bar -->
+      <div class="input-bar-wrap">
+        <div class="input-bar" id="inputBar">
+          <textarea
+            id="userInput"
+            placeholder="Message Gemma 4…"
+            rows="1"
+            maxlength="32000"
+            aria-label="Message input"
+          ></textarea>
+          <button class="send-btn" id="sendBtn" title="Send message" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+        <p class="disclaimer">Gemma 4 can make mistakes. Verify important information.</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
