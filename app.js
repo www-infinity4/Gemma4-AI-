@@ -23,6 +23,7 @@ Always base your answers on peer-reviewed science and established physics. Be cl
 // ── State ────────────────────────────────────────────────────────────
 const conversationHistory = [];  // { role: "user"|"model", parts: [{text}] }[]
 let isGenerating = false;
+const API_KEY_STORAGE = "gemma4_api_key";
 
 // ── DOM refs ─────────────────────────────────────────────────────────
 const messagesEl    = document.getElementById("messages");
@@ -53,7 +54,9 @@ function isMobile() {
   return window.innerWidth <= 640; // matches CSS @media (max-width: 640px)
 }
 
-// ── Init: hide sidebar on mobile so the chat is visible on first load ─
+// ── Init: load saved API key and hide sidebar on mobile ──────────────
+const savedKey = localStorage.getItem(API_KEY_STORAGE);
+if (savedKey) apiKeyInput.value = savedKey;
 if (isMobile()) closeSidebar();
 
 // ── Sidebar toggle ───────────────────────────────────────────────────
@@ -67,7 +70,16 @@ menuBtn.addEventListener("click", () => {
 
 sidebarBackdrop.addEventListener("click", closeSidebar);
 
-// ── API key show/hide ────────────────────────────────────────────────
+// ── API key show/hide & persistence ─────────────────────────────────
+apiKeyInput.addEventListener("input", () => {
+  const val = apiKeyInput.value.trim();
+  if (val) {
+    localStorage.setItem(API_KEY_STORAGE, val);
+  } else {
+    localStorage.removeItem(API_KEY_STORAGE);
+  }
+});
+
 toggleKeyBtn.addEventListener("click", () => {
   const isPassword = apiKeyInput.type === "password";
   apiKeyInput.type = isPassword ? "text" : "password";
