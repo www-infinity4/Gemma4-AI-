@@ -240,3 +240,13 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg); colo
   .input-bar-wrap { padding: 12px; }
   .message { max-width: 100%; }
 }
+
+/* Mobile sidebar backdrop */
+.sidebar-backdrop {
+  display: none;
+  position: fixed; inset: 0; z-index: 99;
+  background: rgba(0,0,0,0.45);
+}
+@media (max-width: 640px) {
+  .sidebar-backdrop.visible { display: block; }
+}

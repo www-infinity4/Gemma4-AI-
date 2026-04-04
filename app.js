@@ -34,11 +34,35 @@ const modelBadge    = document.getElementById("modelBadge");
 const newChatBtn    = document.getElementById("newChatBtn");
 const menuBtn       = document.getElementById("menuBtn");
 const sidebar       = document.querySelector(".sidebar");
+const sidebarBackdrop = document.getElementById("sidebarBackdrop");
 const toggleKeyBtn  = document.getElementById("toggleKeyBtn");
 const welcomeEl     = document.querySelector(".welcome");
 
+// ── Sidebar helpers ───────────────────────────────────────────────────
+function openSidebar() {
+  sidebar.classList.remove("hidden");
+  sidebarBackdrop.classList.add("visible");
+}
+
+function closeSidebar() {
+  sidebar.classList.add("hidden");
+  sidebarBackdrop.classList.remove("visible");
+}
+
+function isMobile() {
+  return window.innerWidth <= 640; // matches CSS @media (max-width: 640px)
+}
+
 // ── Sidebar toggle ───────────────────────────────────────────────────
-menuBtn.addEventListener("click", () => sidebar.classList.toggle("hidden"));
+menuBtn.addEventListener("click", () => {
+  if (sidebar.classList.contains("hidden")) {
+    openSidebar();
+  } else {
+    closeSidebar();
+  }
+});
+
+sidebarBackdrop.addEventListener("click", closeSidebar);
 
 // ── API key show/hide ────────────────────────────────────────────────
 toggleKeyBtn.addEventListener("click", () => {
@@ -63,6 +87,7 @@ userInputEl.addEventListener("input", () => {
 apiKeyInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     e.preventDefault();
+    if (isMobile()) closeSidebar();
     userInputEl.focus();
   }
 });
@@ -80,6 +105,7 @@ sendBtn.addEventListener("click", sendMessage);
 // ── Suggestion chips ─────────────────────────────────────────────────
 document.querySelectorAll(".suggestion-chip").forEach((chip) => {
   chip.addEventListener("click", () => {
+    if (isMobile()) closeSidebar();
     userInputEl.value = chip.dataset.text;
     userInputEl.dispatchEvent(new Event("input"));
     sendMessage();
