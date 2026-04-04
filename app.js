@@ -53,6 +53,9 @@ function isMobile() {
   return window.innerWidth <= 640; // matches CSS @media (max-width: 640px)
 }
 
+// ── Init: hide sidebar on mobile so the chat is visible on first load ─
+if (isMobile()) closeSidebar();
+
 // ── Sidebar toggle ───────────────────────────────────────────────────
 menuBtn.addEventListener("click", () => {
   if (sidebar.classList.contains("hidden")) {
