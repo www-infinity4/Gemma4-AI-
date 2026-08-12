@@ -9,6 +9,7 @@ const el = {
   send: document.getElementById("sendBtn"), endpoint: document.getElementById("endpointInput"),
   profile: document.getElementById("modelSelect"), badge: document.getElementById("modelBadge"),
   status: document.getElementById("connectionStatus"), connect: document.getElementById("connectBtn"),
+  researchToggle: document.getElementById("researchToggle"), researchStatus: document.getElementById("researchStatus"),
   sidebar: document.querySelector(".sidebar"), backdrop: document.getElementById("sidebarBackdrop"),
   menu: document.getElementById("menuBtn"), newChat: document.getElementById("newChatBtn"),
   welcome: document.getElementById("welcome")
@@ -17,6 +18,7 @@ const el = {
 const saved = loadJson(SETTINGS_KEY, {});
 el.endpoint.value = saved.endpoint || DEFAULT_ENDPOINT;
 el.profile.value = saved.profile || "gemma-4-E2B-it";
+el.researchToggle.checked = saved.research !== false;
 if (window.innerWidth > 640) el.sidebar.classList.remove("hidden");
 renderHistory();
 
@@ -26,6 +28,7 @@ el.connect.addEventListener("click", checkConnection);
 el.newChat.addEventListener("click", clearConversation);
 el.endpoint.addEventListener("change", saveSettings);
 el.profile.addEventListener("change", () => { saveSettings(); updateBadge(); });
+el.researchToggle.addEventListener("change", saveSettings);
 el.userInput.addEventListener("input", resizeInput);
 el.userInput.addEventListener("keydown", event => {
   if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); if (!el.send.disabled) sendMessage(); }
@@ -37,7 +40,7 @@ document.querySelectorAll(".suggestion-chip").forEach(button => button.addEventL
 
 function apiBase() { return el.endpoint.value.trim().replace(/\/+$/, ""); }
 function saveSettings() {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify({ endpoint: apiBase() || DEFAULT_ENDPOINT, profile: el.profile.value }));
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify({ endpoint: apiBase() || DEFAULT_ENDPOINT, profile: el.profile.value, research: el.researchToggle.checked }));
   state.serverModel = null;
 }
 function loadJson(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
@@ -78,11 +81,20 @@ async function sendMessage() {
   const typing = appendTyping();
   try {
     if (!state.serverModel && !(await checkConnection())) throw new Error("LOCAL_ENGINE_OFFLINE");
+    let research = { context: "", sources: [], evidenceState: "OBSERVED" };
+    if (el.researchToggle.checked && window.InfinityResearch) {
+      el.researchStatus.textContent = "Researching free sources…";
+      research = await window.InfinityResearch.retrieve(text);
+      el.researchStatus.textContent = research.sources.length
+        ? `${research.sources.length} source excerpts · ${research.evidenceState}`
+        : "No live excerpts returned · continuing without invented citations";
+    }
+    const contextMessage = research.context ? [{ role: "system", content: research.context }] : [];
     const response = await fetch(`${apiBase()}/chat/completions`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: state.serverModel || el.profile.value,
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...state.messages.slice(-24)],
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...contextMessage, ...state.messages.slice(-24)],
         temperature: 0.7, top_p: 0.95, max_tokens: 4096, stream: false
       })
     });
@@ -93,7 +105,7 @@ async function sendMessage() {
     const body = await response.json();
     const answer = body?.choices?.[0]?.message?.content?.trim();
     if (!answer) throw new Error("The local engine returned an empty response.");
-    typing.remove(); appendMessage("assistant", answer); state.messages.push({ role: "assistant", content: answer }); persistHistory();
+    typing.remove(); appendMessage("assistant", answer, research.sources); state.messages.push({ role: "assistant", content: answer, sources: research.sources }); persistHistory();
   } catch (error) {
     typing.remove(); showError(error.message === "LOCAL_ENGINE_OFFLINE" ? "Start llama-server with ./start-gemma.sh, then press Check local engine." : error.message);
   } finally { state.generating = false; resizeInput(); }
@@ -107,13 +119,23 @@ function clearConversation() {
 function renderHistory() {
   if (!Array.isArray(state.messages) || !state.messages.length) return;
   if (el.welcome?.isConnected) el.welcome.remove();
-  state.messages.forEach(message => appendMessage(message.role, message.content));
+  state.messages.forEach(message => appendMessage(message.role, message.content, message.sources));
 }
-function appendMessage(role, text) {
+function appendMessage(role, text, sources = []) {
   const row = document.createElement("div"); row.className = `message ${role === "user" ? "user" : "model"}`;
   const avatar = document.createElement("div"); avatar.className = "avatar"; avatar.textContent = role === "user" ? "You" : "G4";
   const bubble = document.createElement("div"); bubble.className = "bubble"; bubble.textContent = text;
-  row.append(avatar, bubble); el.messages.appendChild(row); scrollBottom(); return row;
+  const content = document.createElement("div"); content.className = "message-content"; content.appendChild(bubble);
+  if (Array.isArray(sources) && sources.length) {
+    const sourceList = document.createElement("div"); sourceList.className = "source-list";
+    sources.forEach(source => {
+      const link = document.createElement("a"); link.className = "source-chip"; link.href = source.url;
+      link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = `${source.provider} · ${source.title}`;
+      sourceList.appendChild(link);
+    });
+    content.appendChild(sourceList);
+  }
+  row.append(avatar, content); el.messages.appendChild(row); scrollBottom(); return row;
 }
 function appendTyping() {
   const row = document.createElement("div"); row.className = "message model";
