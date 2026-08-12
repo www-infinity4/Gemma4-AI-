@@ -29,6 +29,8 @@
         </select>
         <button id="connectBtn" class="connect-btn" type="button">Check local engine</button>
         <p id="connectionStatus" class="status" role="status"><span></span>Not checked</p>
+        <label class="research-toggle"><input id="researchToggle" type="checkbox" checked> Ground replies with free research</label>
+        <p id="researchStatus" class="research-status" role="status">Research ready · Wikipedia · Wikidata · DuckDuckGo</p>
         <p class="engine-note">No Google API key is used. Your messages go only to the local address above.</p>
       </section>
 
@@ -69,6 +71,7 @@
       </div>
     </main>
   </div>
+  <script src="research.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
