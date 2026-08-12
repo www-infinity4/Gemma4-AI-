@@ -1,71 +1,48 @@
-# Gemma 4 AI Chatbot
+# Gemma 4 Local AI
 
-A fully front-end chatbot powered by **Gemma 4** — Google's latest open AI model (released March 31, 2026) — accessed via the Google Gemini API.
+This branch replaces the key-gated Gemini API wiring with a real local Gemma 4 connection. The browser interface sends chat requests to the OpenAI-compatible endpoint exposed by `llama-server`. No Google API key is requested, saved, or transmitted.
 
-No build step, no server, no dependencies. Just open `index.html` in your browser.
+## What works
 
----
+- Local Gemma 4 chat through `http://127.0.0.1:8080/v1`
+- Multi-turn history saved on the device
+- Connection check with a clear online/offline state
+- Mobile hamburger/settings panel
+- E2B, E4B, 12B, 26B A4B, and 31B profiles
+- A start script supporting either an existing GGUF file or a Hugging Face model ID
+- Optional retrieval grounding from Wikipedia, Wikidata, and DuckDuckGo Instant Answers
+- A persistent local knowledge graph with evidence state and source URLs
 
-## Features
+## Start it
 
-- 🤖 **Gemma 4 models** — choose between 27B, 31B, E4B, and E2B variants
-- 🔬 **Science-focused system prompt** — grounded in nuclear physics, chemistry, quantum mechanics, materials science, astrophysics, engineering, and more
-- 💬 **Full conversation history** — multi-turn chat with context
-- 📝 **Markdown rendering** — code blocks, headers, bold/italic, lists, blockquotes
-- 📱 **Responsive design** — works on desktop and mobile
-- 🔑 **Client-side only** — your API key is never stored or sent anywhere except directly to the Google AI API
+1. Put a current prebuilt `llama-server` binary at `bin/llama-server`, or make it available on your PATH.
+2. Run:
 
----
+   ```sh
+   chmod +x start-gemma.sh
+   ./start-gemma.sh
+   ```
 
-## Quick Start
+3. Open `index.html` and press **Check local engine**.
 
-1. **Get a free API key** at [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
-2. **Open `index.html`** in any modern browser (Chrome, Firefox, Safari, Edge)
-3. **Paste your API key** into the sidebar field
-4. **Start chatting!**
+The default model is `ggml-org/gemma-4-E2B-it-GGUF`, the smallest Gemma 4 profile and the practical starting point for a phone or low-memory machine. To use a downloaded model without another network download:
 
----
-
-## Model Options
-
-| Model | Description |
-|---|---|
-| `gemma-4-27b-it` | Recommended — balanced capability and speed |
-| `gemma-4-31b-it` | Most capable (dense 31B model) |
-| `gemma-4-e4b-it` | Efficient 4B — fast responses |
-| `gemma-4-e2b-it` | Efficient 2B — fastest, lightest |
-
----
-
-## Scientific Fields Covered
-
-The assistant is grounded in the following domains:
-
-- Nuclear Physics & Engineering (fission, fusion, reactor design, radiation)
-- Chemistry (organic, inorganic, physical, electrochemistry, catalysis)
-- Quantum Mechanics & Particle Physics
-- Astrophysics & Cosmology
-- Materials Science & Nanotechnology
-- Electrical Engineering & Electronics
-- Computer Science & AI
-- Biology & Biochemistry
-- Environmental & Energy Science
-- Mathematics & Statistics
-
----
-
-## Project Structure
-
-```
-index.html   — Chat UI (message thread, input bar, model selector)
-style.css    — Dark-mode responsive styles
-app.js       — API integration, Markdown rendering, conversation state
+```sh
+GEMMA_MODEL=/full/path/to/model.gguf ./start-gemma.sh
 ```
 
----
+Optional controls:
 
-## Notes
+```sh
+GEMMA_PORT=8080 GEMMA_CONTEXT=8192 ./start-gemma.sh
+```
 
-- API keys are kept in the browser session only and are never persisted to disk or sent to any third party.
-- Requires an internet connection to reach the Google Gemini API.
-- Usage is subject to [Google AI Studio terms](https://ai.google.dev/gemma/terms) and your API quota.
+## Important boundary
+
+GitHub Pages can host the interface, but it cannot run the model weights. The local `llama-server` process is the reasoning engine. This is still key-free and local: it does not depend on the Gemini API.
+
+## Research and reasoning path
+
+When research grounding is enabled, `research.js` queries the three free sources in parallel, places returned excerpts in a separate system context, and stores a compact entry in the local knowledge graph. Source chips are displayed under the response. When no source responds, the model is explicitly told not to invent citations.
+
+This preserves the Octave/Infinity terminal boundary: external excerpts are tagged `EXTERNALLY_VERIFIED` as retrieved source material, knowledge-graph summaries remain prior-session context, and Gemma's synthesis remains model inference.

@@ -1,359 +1,153 @@
-// ── Gemma 4 AI Chatbot ──────────────────────────────────────────────
-// Uses the Google Gemini API with the gemma-4-27b-it model.
-// No build step required – open index.html directly in a browser.
+const DEFAULT_ENDPOINT = "http://127.0.0.1:8080/v1";
+const SETTINGS_KEY = "infinity_gemma_local_settings_v1";
+const HISTORY_KEY = "infinity_gemma_local_history_v1";
+const SYSTEM_PROMPT = `You are the local Gemma 4 reasoning engine inside Infinity AI. Help with research, writing, coding, engineering, and project planning. Preserve the user's intended design and terminology. Clearly separate established evidence, reasonable inference, and untested theory. Never pretend that a file, website, test, or external system was inspected when it was not.`;
 
-const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
+const state = { generating: false, serverModel: null, messages: loadJson(HISTORY_KEY, []) };
+const el = {
+  messages: document.getElementById("messages"), userInput: document.getElementById("userInput"),
+  send: document.getElementById("sendBtn"), endpoint: document.getElementById("endpointInput"),
+  profile: document.getElementById("modelSelect"), badge: document.getElementById("modelBadge"),
+  status: document.getElementById("connectionStatus"), connect: document.getElementById("connectBtn"),
+  researchToggle: document.getElementById("researchToggle"), researchStatus: document.getElementById("researchStatus"),
+  sidebar: document.querySelector(".sidebar"), backdrop: document.getElementById("sidebarBackdrop"),
+  menu: document.getElementById("menuBtn"), newChat: document.getElementById("newChatBtn"),
+  welcome: document.getElementById("welcome")
+};
 
-// System instruction: ground the assistant in legitimate science fields
-const SYSTEM_INSTRUCTION = `You are Gemma 4, an expert AI assistant specialising in the following scientific and technical fields:
+const saved = loadJson(SETTINGS_KEY, {});
+el.endpoint.value = saved.endpoint || DEFAULT_ENDPOINT;
+el.profile.value = saved.profile || "gemma-4-E2B-it";
+el.researchToggle.checked = saved.research !== false;
+if (window.innerWidth > 640) el.sidebar.classList.remove("hidden");
+renderHistory();
 
-• Nuclear Physics & Engineering – fission, fusion, reactor design, radiation, nuclear energy
-• Chemistry – organic, inorganic, physical, and electrochemistry (batteries, fuel cells, catalysis)
-• Quantum Mechanics & Particle Physics – wave-particle duality, quantum field theory, the Standard Model
-• Astrophysics & Cosmology – stellar evolution, black holes, the Big Bang, dark matter/energy
-• Materials Science – semiconductors, nanotechnology, superconductors, advanced materials
-• Electrical Engineering & Electronics – circuits, signals, power systems, photonics
-• Computer Science & AI – algorithms, machine learning, software engineering
-• Biology & Biochemistry – molecular biology, genetics, biochemical pathways
-• Environmental & Energy Science – renewables, climate science, atmospheric physics
-• Mathematics – pure and applied mathematics, statistics, information theory
+el.menu.addEventListener("click", () => toggleSidebar());
+el.backdrop.addEventListener("click", () => toggleSidebar(false));
+el.connect.addEventListener("click", checkConnection);
+el.newChat.addEventListener("click", clearConversation);
+el.endpoint.addEventListener("change", saveSettings);
+el.profile.addEventListener("change", () => { saveSettings(); updateBadge(); });
+el.researchToggle.addEventListener("change", saveSettings);
+el.userInput.addEventListener("input", resizeInput);
+el.userInput.addEventListener("keydown", event => {
+  if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); if (!el.send.disabled) sendMessage(); }
+});
+el.send.addEventListener("click", sendMessage);
+document.querySelectorAll(".suggestion-chip").forEach(button => button.addEventListener("click", () => {
+  el.userInput.value = button.dataset.text; resizeInput(); sendMessage();
+}));
 
-Always base your answers on peer-reviewed science and established physics. Be clear, accurate, and educational. When topics are uncertain or actively researched, say so honestly.`;
-
-// ── State ────────────────────────────────────────────────────────────
-const conversationHistory = [];  // { role: "user"|"model", parts: [{text}] }[]
-let isGenerating = false;
-const API_KEY_STORAGE = "gemma4_api_key";
-
-// ── DOM refs ─────────────────────────────────────────────────────────
-const messagesEl    = document.getElementById("messages");
-const userInputEl   = document.getElementById("userInput");
-const sendBtn       = document.getElementById("sendBtn");
-const apiKeyInput   = document.getElementById("apiKeyInput");
-const modelSelect   = document.getElementById("modelSelect");
-const modelBadge    = document.getElementById("modelBadge");
-const newChatBtn    = document.getElementById("newChatBtn");
-const menuBtn       = document.getElementById("menuBtn");
-const sidebar       = document.querySelector(".sidebar");
-const sidebarBackdrop = document.getElementById("sidebarBackdrop");
-const toggleKeyBtn  = document.getElementById("toggleKeyBtn");
-const welcomeEl     = document.querySelector(".welcome");
-
-// ── Sidebar helpers ───────────────────────────────────────────────────
-function openSidebar() {
-  sidebar.classList.remove("hidden");
-  sidebarBackdrop.classList.add("visible");
+function apiBase() { return el.endpoint.value.trim().replace(/\/+$/, ""); }
+function saveSettings() {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify({ endpoint: apiBase() || DEFAULT_ENDPOINT, profile: el.profile.value, research: el.researchToggle.checked }));
+  state.serverModel = null;
 }
-
-function closeSidebar() {
-  sidebar.classList.add("hidden");
-  sidebarBackdrop.classList.remove("visible");
+function loadJson(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
+function toggleSidebar(force) {
+  const open = force ?? el.sidebar.classList.contains("hidden");
+  el.sidebar.classList.toggle("hidden", !open); el.backdrop.classList.toggle("visible", open && window.innerWidth <= 640);
 }
-
-function isMobile() {
-  return window.innerWidth <= 640; // matches CSS @media (max-width: 640px)
+function resizeInput() {
+  el.userInput.style.height = "auto"; el.userInput.style.height = `${Math.min(el.userInput.scrollHeight, 180)}px`;
+  el.send.disabled = !el.userInput.value.trim() || state.generating;
 }
+function setStatus(kind, text) {
+  el.status.className = `status ${kind}`; el.status.innerHTML = `<span></span>${escapeHtml(text)}`;
+}
+function updateBadge() { el.badge.textContent = state.serverModel || `${el.profile.value} · local`; }
 
-// ── Init: load saved API key and hide sidebar on mobile ──────────────
-const savedKey = localStorage.getItem(API_KEY_STORAGE);
-if (savedKey) apiKeyInput.value = savedKey;
-if (isMobile()) closeSidebar();
-
-// ── Sidebar toggle ───────────────────────────────────────────────────
-menuBtn.addEventListener("click", () => {
-  if (sidebar.classList.contains("hidden")) {
-    openSidebar();
-  } else {
-    closeSidebar();
-  }
-});
-
-sidebarBackdrop.addEventListener("click", closeSidebar);
-
-// ── API key show/hide & persistence ─────────────────────────────────
-apiKeyInput.addEventListener("input", () => {
-  const val = apiKeyInput.value.trim();
-  if (val) {
-    localStorage.setItem(API_KEY_STORAGE, val);
-  } else {
-    localStorage.removeItem(API_KEY_STORAGE);
-  }
-});
-
-toggleKeyBtn.addEventListener("click", () => {
-  const isPassword = apiKeyInput.type === "password";
-  apiKeyInput.type = isPassword ? "text" : "password";
-  toggleKeyBtn.setAttribute("title", isPassword ? "Hide key" : "Show key");
-});
-
-// ── Model badge update ───────────────────────────────────────────────
-modelSelect.addEventListener("change", () => {
-  modelBadge.textContent = modelSelect.value;
-});
-
-// ── Auto-resize textarea ─────────────────────────────────────────────
-userInputEl.addEventListener("input", () => {
-  userInputEl.style.height = "auto";
-  userInputEl.style.height = Math.min(userInputEl.scrollHeight, 180) + "px";
-  sendBtn.disabled = userInputEl.value.trim() === "" || isGenerating;
-});
-
-// ── API key: press Enter to move focus to message input ──────────────
-apiKeyInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    e.preventDefault();
-    if (isMobile()) closeSidebar();
-    userInputEl.focus();
-  }
-});
-
-// ── Send on Enter (Shift+Enter = newline) ────────────────────────────
-userInputEl.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    if (!sendBtn.disabled) sendMessage();
-  }
-});
-
-sendBtn.addEventListener("click", sendMessage);
-
-// ── Suggestion chips ─────────────────────────────────────────────────
-document.querySelectorAll(".suggestion-chip").forEach((chip) => {
-  chip.addEventListener("click", () => {
-    if (isMobile()) closeSidebar();
-    userInputEl.value = chip.dataset.text;
-    userInputEl.dispatchEvent(new Event("input"));
-    sendMessage();
-  });
-});
-
-// ── New chat ──────────────────────────────────────────────────────────
-newChatBtn.addEventListener("click", () => {
-  conversationHistory.length = 0;
-  messagesEl.innerHTML = "";
-  if (welcomeEl) messagesEl.appendChild(welcomeEl);
-  userInputEl.value = "";
-  userInputEl.style.height = "auto";
-  sendBtn.disabled = true;
-});
-
-// ── Core: send message ────────────────────────────────────────────────
-async function sendMessage() {
-  const text = userInputEl.value.trim();
-  if (!text || isGenerating) return;
-
-  const apiKey = apiKeyInput.value.trim();
-  if (!apiKey) {
-    showError("Please enter your Google AI Studio API key in the sidebar.");
-    return;
-  }
-
-  // Hide welcome screen on first message
-  if (welcomeEl && welcomeEl.parentNode) welcomeEl.remove();
-
-  // Append user message
-  appendMessage("user", text);
-  conversationHistory.push({ role: "user", parts: [{ text }] });
-
-  userInputEl.value = "";
-  userInputEl.style.height = "auto";
-  sendBtn.disabled = true;
-  isGenerating = true;
-
-  // Show typing indicator
-  const typingEl = appendTyping();
-
+async function checkConnection() {
+  saveSettings(); setStatus("checking", "Checking…"); el.connect.disabled = true;
   try {
-    const responseText = await callGemmaAPI(apiKey, modelSelect.value);
-    typingEl.remove();
-    appendMessage("model", responseText);
-    conversationHistory.push({ role: "model", parts: [{ text: responseText }] });
-  } catch (err) {
-    typingEl.remove();
-    showError(formatAPIError(err));
-  } finally {
-    isGenerating = false;
-    sendBtn.disabled = userInputEl.value.trim() === "";
-    scrollToBottom();
-  }
+    const response = await fetch(`${apiBase()}/models`, { headers: { Accept: "application/json" } });
+    if (!response.ok) throw new Error(`Local engine returned HTTP ${response.status}`);
+    const body = await response.json();
+    state.serverModel = body?.data?.[0]?.id || el.profile.value;
+    setStatus("online", "Local engine online"); updateBadge();
+    return true;
+  } catch (error) {
+    state.serverModel = null; setStatus("offline", friendlyConnectionError(error)); updateBadge();
+    return false;
+  } finally { el.connect.disabled = false; }
 }
 
-// ── Gemini API call ───────────────────────────────────────────────────
-async function callGemmaAPI(apiKey, model) {
-  const url = `${GEMINI_API_BASE}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-
-  const body = {
-    system_instruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
-    contents: conversationHistory,
-    generationConfig: {
-      temperature: 0.7,
-      topP: 0.95,
-      maxOutputTokens: 8192,
-    },
-    safetySettings: [
-      { category: "HARM_CATEGORY_HARASSMENT",        threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-      { category: "HARM_CATEGORY_HATE_SPEECH",       threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-      { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-      { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-    ],
-  };
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    const msg = errData?.error?.message || `HTTP ${res.status}`;
-    throw new Error(msg);
-  }
-
-  const data = await res.json();
-  const candidate = data?.candidates?.[0];
-
-  if (!candidate) throw new Error("No response from the API. The model may have blocked this request.");
-
-  const finishReason = candidate.finishReason;
-  if (finishReason === "SAFETY") throw new Error("Response blocked by safety filters.");
-  if (finishReason === "RECITATION") throw new Error("Response blocked due to recitation policy.");
-
-  return candidate.content?.parts?.map((p) => p.text).join("") || "(empty response)";
+async function sendMessage() {
+  const text = el.userInput.value.trim();
+  if (!text || state.generating) return;
+  if (el.welcome?.isConnected) el.welcome.remove();
+  appendMessage("user", text); state.messages.push({ role: "user", content: text }); persistHistory();
+  el.userInput.value = ""; resizeInput(); state.generating = true; el.send.disabled = true;
+  const typing = appendTyping();
+  try {
+    if (!state.serverModel && !(await checkConnection())) throw new Error("LOCAL_ENGINE_OFFLINE");
+    let research = { context: "", sources: [], evidenceState: "OBSERVED" };
+    if (el.researchToggle.checked && window.InfinityResearch) {
+      el.researchStatus.textContent = "Researching free sources…";
+      research = await window.InfinityResearch.retrieve(text);
+      el.researchStatus.textContent = research.sources.length
+        ? `${research.sources.length} source excerpts · ${research.evidenceState}`
+        : "No live excerpts returned · continuing without invented citations";
+    }
+    const contextMessage = research.context ? [{ role: "system", content: research.context }] : [];
+    const response = await fetch(`${apiBase()}/chat/completions`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: state.serverModel || el.profile.value,
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...contextMessage, ...state.messages.slice(-24)],
+        temperature: 0.7, top_p: 0.95, max_tokens: 4096, stream: false
+      })
+    });
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body?.error?.message || `Local engine returned HTTP ${response.status}`);
+    }
+    const body = await response.json();
+    const answer = body?.choices?.[0]?.message?.content?.trim();
+    if (!answer) throw new Error("The local engine returned an empty response.");
+    typing.remove(); appendMessage("assistant", answer, research.sources); state.messages.push({ role: "assistant", content: answer, sources: research.sources }); persistHistory();
+  } catch (error) {
+    typing.remove(); showError(error.message === "LOCAL_ENGINE_OFFLINE" ? "Start llama-server with ./start-gemma.sh, then press Check local engine." : error.message);
+  } finally { state.generating = false; resizeInput(); }
 }
 
-// ── Render helpers ────────────────────────────────────────────────────
-function appendMessage(role, text) {
-  const row = document.createElement("div");
-  row.className = `message ${role}`;
-
-  const avatar = document.createElement("div");
-  avatar.className = "avatar";
-
-  if (role === "model") {
-    avatar.innerHTML = `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="20" cy="20" r="20" fill="url(#ag)"/>
-      <path d="M12 20c0-4.418 3.582-8 8-8s8 3.582 8 8-3.582 8-8 8" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
-      <circle cx="20" cy="20" r="3" fill="#fff"/>
-      <defs><linearGradient id="ag" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-        <stop stop-color="#4285F4"/><stop offset="1" stop-color="#34A853"/>
-      </linearGradient></defs></svg>`;
-  } else {
-    avatar.textContent = "You";
-  }
-
-  const bubble = document.createElement("div");
-  bubble.className = "bubble";
-  bubble.innerHTML = renderMarkdown(text);
-
-  row.appendChild(avatar);
-  row.appendChild(bubble);
-  messagesEl.appendChild(row);
-  scrollToBottom();
-  return row;
+function persistHistory() { localStorage.setItem(HISTORY_KEY, JSON.stringify(state.messages.slice(-50))); }
+function clearConversation() {
+  state.messages = []; localStorage.removeItem(HISTORY_KEY); el.messages.innerHTML = "";
+  if (el.welcome) el.messages.appendChild(el.welcome); el.userInput.value = ""; resizeInput();
 }
-
+function renderHistory() {
+  if (!Array.isArray(state.messages) || !state.messages.length) return;
+  if (el.welcome?.isConnected) el.welcome.remove();
+  state.messages.forEach(message => appendMessage(message.role, message.content, message.sources));
+}
+function appendMessage(role, text, sources = []) {
+  const row = document.createElement("div"); row.className = `message ${role === "user" ? "user" : "model"}`;
+  const avatar = document.createElement("div"); avatar.className = "avatar"; avatar.textContent = role === "user" ? "You" : "G4";
+  const bubble = document.createElement("div"); bubble.className = "bubble"; bubble.textContent = text;
+  const content = document.createElement("div"); content.className = "message-content"; content.appendChild(bubble);
+  if (Array.isArray(sources) && sources.length) {
+    const sourceList = document.createElement("div"); sourceList.className = "source-list";
+    sources.forEach(source => {
+      const link = document.createElement("a"); link.className = "source-chip"; link.href = source.url;
+      link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = `${source.provider} · ${source.title}`;
+      sourceList.appendChild(link);
+    });
+    content.appendChild(sourceList);
+  }
+  row.append(avatar, content); el.messages.appendChild(row); scrollBottom(); return row;
+}
 function appendTyping() {
-  const row = document.createElement("div");
-  row.className = "message model";
-  row.innerHTML = `
-    <div class="avatar">
-      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="20" cy="20" r="20" fill="url(#tg)"/>
-        <path d="M12 20c0-4.418 3.582-8 8-8s8 3.582 8 8-3.582 8-8 8" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
-        <circle cx="20" cy="20" r="3" fill="#fff"/>
-        <defs><linearGradient id="tg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-          <stop stop-color="#4285F4"/><stop offset="1" stop-color="#34A853"/>
-        </linearGradient></defs>
-      </svg>
-    </div>
-    <div class="bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
-  messagesEl.appendChild(row);
-  scrollToBottom();
-  return row;
+  const row = document.createElement("div"); row.className = "message model";
+  row.innerHTML = '<div class="avatar">G4</div><div class="bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>';
+  el.messages.appendChild(row); scrollBottom(); return row;
 }
-
-function showError(msg) {
-  const el = document.createElement("div");
-  el.className = "error-msg";
-  el.innerHTML = `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-    </svg>
-    <span>${escapeHtml(msg)}</span>`;
-  messagesEl.appendChild(el);
-  scrollToBottom();
+function showError(text) {
+  const row = document.createElement("div"); row.className = "error-msg"; row.textContent = text; el.messages.appendChild(row); scrollBottom();
 }
-
-function formatAPIError(err) {
-  const msg = err?.message || String(err);
-  if (msg.includes("API_KEY_INVALID") || msg.includes("API key")) return "Invalid API key. Get one at aistudio.google.com/apikey";
-  if (msg.includes("RESOURCE_EXHAUSTED") || msg.includes("quota")) return "API quota exceeded. Try again later or check your Google AI Studio limits.";
-  if (msg.includes("MODEL_NOT_FOUND") || msg.includes("not found")) return `Model "${modelSelect.value}" not found. It may not yet be available on your API key. Try a different model.`;
-  return msg;
+function friendlyConnectionError(error) {
+  if (error instanceof TypeError) return "Offline — start llama-server";
+  return `Offline — ${error.message}`;
 }
-
-function scrollToBottom() {
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-
-// ── Lightweight Markdown renderer ─────────────────────────────────────
-function renderMarkdown(text) {
-  // Escape HTML first, then selectively un-escape for markdown
-  let out = text;
-
-  // Code blocks (``` ... ```)
-  out = out.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
-    return `<pre><code class="lang-${escapeHtml(lang)}">${escapeHtml(code.trim())}</code></pre>`;
-  });
-
-  // Inline code
-  out = out.replace(/`([^`\n]+)`/g, (_, c) => `<code>${escapeHtml(c)}</code>`);
-
-  // Headings
-  out = out.replace(/^### (.+)$/gm, "<h3>$1</h3>");
-  out = out.replace(/^## (.+)$/gm, "<h2>$1</h2>");
-  out = out.replace(/^# (.+)$/gm, "<h1>$1</h1>");
-
-  // Bold & italic
-  out = out.replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>");
-  out = out.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-  out = out.replace(/\*(.+?)\*/g, "<em>$1</em>");
-
-  // Blockquote
-  out = out.replace(/^&gt; (.+)$/gm, "<blockquote>$1</blockquote>");
-  out = out.replace(/^> (.+)$/gm, "<blockquote>$1</blockquote>");
-
-  // Unordered lists
-  out = out.replace(/(^[*\-] .+(\n[*\-] .+)*)/gm, (block) => {
-    const items = block.split("\n").map((l) => `<li>${l.replace(/^[*\-] /, "")}</li>`).join("");
-    return `<ul>${items}</ul>`;
-  });
-
-  // Ordered lists
-  out = out.replace(/(^\d+\. .+(\n\d+\. .+)*)/gm, (block) => {
-    const items = block.split("\n").map((l) => `<li>${l.replace(/^\d+\. /, "")}</li>`).join("");
-    return `<ol>${items}</ol>`;
-  });
-
-  // Paragraphs (double newline)
-  out = out.replace(/\n{2,}/g, "</p><p>");
-  out = "<p>" + out + "</p>";
-
-  // Single newlines inside paragraphs → <br>
-  out = out.replace(/(?<!<\/?(p|ul|ol|li|h[1-3]|pre|blockquote)>)\n(?!<(p|ul|ol|li|h[1-3]|pre|blockquote)>)/g, "<br>");
-
-  // Clean up empty paragraphs
-  out = out.replace(/<p>\s*<\/p>/g, "");
-
-  return out;
-}
-
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+function scrollBottom() { el.messages.scrollTop = el.messages.scrollHeight; }
+function escapeHtml(value) { return String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]); }
