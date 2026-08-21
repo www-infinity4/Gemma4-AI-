@@ -1,77 +1,185 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0f0f10">
-  <title>Gemma 4 Local AI</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#08150f">
+  <meta name="description" content="Gemstone Mountain — a clear, phone-first gateway to Verzazio wholesale loose gemstones on eBay, Etsy, and the web.">
+  <meta property="og:title" content="Gemstone Mountain">
+  <meta property="og:description" content="Affordable loose gemstones, verified Verzazio shop links, and contacts in New York and Sicily.">
+  <meta property="og:type" content="website">
+  <title>Gemstone Mountain</title>
+  <style>
+    :root{--ink:#f6fbf8;--muted:#a9bdb2;--bg:#06110c;--card:#0d1d15;--line:#244032;--emerald:#56e6a6;--gold:#ffd37a;--violet:#b7a2ff;--safe:env(safe-area-inset-bottom,0px)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:radial-gradient(circle at 85% -5%,#193d2d 0,transparent 32rem),var(--bg);font:500 16px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:inherit;text-decoration:none}button{font:inherit}.app{width:min(100%,560px);margin:auto;min-height:100vh;padding-bottom:calc(92px + var(--safe))}
+    .topbar{height:68px;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20;background:rgba(6,17,12,.84);backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.06)}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:850;letter-spacing:-.03em}.mark{width:40px;height:40px;display:grid;place-items:center;position:relative}.mark:before{content:"";width:25px;height:25px;background:linear-gradient(145deg,var(--emerald),#237d58);clip-path:polygon(50% 0,94% 26%,78% 82%,50% 100%,22% 82%,6% 26%);box-shadow:0 0 24px #56e6a677}.mark:after{content:"";position:absolute;width:10px;height:16px;background:#fff8;clip-path:polygon(50% 0,100% 100%,0 75%);transform:translate(-3px,-3px)}
+    .icon-btn{width:44px;height:44px;border:1px solid var(--line);border-radius:15px;color:var(--ink);background:#102219;display:grid;place-items:center;cursor:pointer}.icon-btn svg{width:22px}
+    main{padding:12px 16px 40px}.hero{position:relative;overflow:hidden;padding:26px 22px 22px;border:1px solid #2b523f;border-radius:30px;background:linear-gradient(145deg,#173928,#091811 68%);box-shadow:0 24px 70px #0008}.eyebrow{display:inline-flex;gap:7px;align-items:center;color:var(--emerald);font-size:12px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}.eyebrow i{width:7px;height:7px;border-radius:50%;background:var(--emerald);box-shadow:0 0 12px var(--emerald)}h1{font-size:clamp(37px,10vw,54px);line-height:.95;letter-spacing:-.065em;margin:15px 0 14px;max-width:380px}.hero p{color:#c7d7ce;margin:0 0 22px;max-width:390px}.hero-actions{display:flex;gap:10px;flex-wrap:wrap}.btn{min-height:48px;border-radius:16px;padding:0 17px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:800;border:1px solid var(--line)}.btn.primary{background:var(--emerald);color:#042016;border-color:var(--emerald);box-shadow:0 9px 24px #30bd7c33}.btn.secondary{background:#13271d}.hero-gem{position:absolute;right:-27px;top:26px;width:126px;height:126px;opacity:.24;background:conic-gradient(from 15deg,#c9ffe7,#4bcb91,#d6c9ff,#ffe7a6,#c9ffe7);clip-path:polygon(50% 0,92% 26%,78% 82%,50% 100%,22% 82%,8% 26%)}
+    .trust{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 26px}.trust div{background:#0b1a12;border:1px solid #1c3327;border-radius:17px;padding:13px 8px;text-align:center}.trust b{display:block;font-size:16px}.trust span{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+    .section-head{display:flex;align-items:end;justify-content:space-between;margin:28px 2px 13px}.section-head h2{font-size:23px;letter-spacing:-.035em;margin:0}.section-head a{color:var(--emerald);font-size:13px;font-weight:800}.stone-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stone{min-height:150px;border:1px solid var(--line);border-radius:23px;padding:17px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;background:#0d1c15}.stone:before{content:"";position:absolute;width:88px;height:88px;right:-10px;top:-11px;clip-path:polygon(50% 0,94% 28%,77% 84%,50% 100%,23% 84%,6% 28%);background:linear-gradient(140deg,var(--gem-a),var(--gem-b));opacity:.75;filter:drop-shadow(0 10px 18px #0007)}.stone small{color:var(--muted);font-weight:700}.stone strong{font-size:18px}.stone em{font-style:normal;color:#d8e8df;font-size:12px}.round{--gem-a:#fff4ba;--gem-b:#7fa885}.fancy{--gem-a:#ffbfd8;--gem-b:#9d5cff}.yellow{--gem-a:#fff48d;--gem-b:#dc9718}.exceptional{--gem-a:#b8f8ff;--gem-b:#4779d9}
+    .notice{margin:26px 0 0;padding:17px;border-radius:20px;background:#162015;border:1px solid #41432a;color:#e7e3c5;font-size:13px}.notice b{color:var(--gold)}
+    .story{margin:24px 0;padding:22px;border-radius:25px;background:linear-gradient(145deg,#251a32,#101b17);border:1px solid #49365a}.story .eyebrow{color:#d2beff}.story h2{font-size:25px;line-height:1.05;letter-spacing:-.04em;margin:12px 0}.story p{color:#d9cfe2;margin:0}.story strong{color:#fff}
+    .office-list{display:grid;gap:11px}.office{background:var(--card);border:1px solid var(--line);border-radius:23px;padding:18px}.office-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.office h3{margin:0;font-size:20px}.flag{font-size:24px}.address{color:var(--muted);font-size:14px;margin:10px 0 15px}.quick{display:grid;grid-template-columns:1fr 1fr;gap:8px}.quick a{background:#14281d;border:1px solid #294735;padding:11px;border-radius:14px;text-align:center;font-size:13px;font-weight:800}
+    .link-list{display:grid;gap:9px}.link-row{min-height:62px;padding:10px 12px;border:1px solid var(--line);border-radius:18px;background:var(--card);display:flex;align-items:center;gap:12px}.link-icon{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:#173225;color:var(--emerald);font-weight:900}.link-copy{flex:1}.link-copy b,.link-copy span{display:block}.link-copy span{color:var(--muted);font-size:12px}.chev{color:#708a7a;font-size:22px}.market-note{color:var(--muted);font-size:12px;margin:10px 3px 0}
+    footer{color:#7f9589;text-align:center;font-size:11px;padding:28px 12px 0}.dock{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + var(--safe));z-index:30;width:min(calc(100% - 24px),536px);height:70px;display:grid;grid-template-columns:repeat(3,1fr);align-items:center;background:rgba(13,29,21,.93);backdrop-filter:blur(18px);border:1px solid #315440;border-radius:23px;box-shadow:0 20px 50px #000b}.dock a{height:58px;display:grid;place-items:center;align-content:center;gap:2px;color:var(--muted);font-size:11px;font-weight:750}.dock svg{width:22px;height:22px}.dock a:first-child{color:var(--emerald)}
+    dialog{width:min(calc(100% - 28px),530px);border:1px solid #315440;border-radius:25px;color:var(--ink);background:#0d1d15;padding:12px;box-shadow:0 30px 100px #000}dialog::backdrop{background:#000a;backdrop-filter:blur(4px)}.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 12px}.sheet-head h2{margin:0;font-size:21px}.menu-links{display:grid;gap:7px}.menu-links a{padding:16px;border-radius:15px;background:#14271d;font-weight:750}.fine{padding:12px 6px 4px;color:var(--muted);font-size:11px}
+    .gemma-fab{position:fixed;z-index:35;right:max(18px,calc((100vw - 560px)/2 + 18px));bottom:calc(92px + var(--safe));width:58px;height:58px;border:1px solid #d6c3ff66;border-radius:20px;background:linear-gradient(145deg,#a987ff,#5736ae);color:white;font-weight:950;box-shadow:0 14px 35px #8e69ff55;cursor:pointer}.gemma-fab span{display:block;font-size:9px;font-weight:750}.gemma-sheet{padding:16px}.gemma-intro{color:var(--muted);font-size:13px;margin:0 3px 12px}.gemma-chips{display:flex;gap:7px;overflow:auto;padding:2px 2px 12px;scrollbar-width:none}.gemma-chips button{white-space:nowrap;border:1px solid #493a69;border-radius:999px;background:#211b31;color:#e5d9ff;padding:9px 12px;font-size:12px}.gemma-answer{min-height:110px;border:1px solid #354a3f;border-radius:18px;background:#101d16;padding:15px;color:#dce9e1;font-size:14px;white-space:pre-line}.gemma-answer b{color:var(--emerald)}.gemma-input{display:flex;gap:8px;margin-top:10px}.gemma-input input{min-width:0;flex:1;border:1px solid #354a3f;border-radius:14px;background:#09130e;color:white;padding:13px}.gemma-input button{border:0;border-radius:14px;background:var(--emerald);color:#052016;font-weight:900;padding:0 15px}.engine-box{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}.engine-box summary{cursor:pointer;color:#cbb8ff;font-size:12px;font-weight:800}.engine-row{display:flex;gap:8px;margin-top:10px}.engine-row input{min-width:0;flex:1;border:1px solid #354a3f;border-radius:12px;background:#09130e;color:white;padding:10px;font-size:11px}.engine-row button{border:1px solid #55447c;border-radius:12px;background:#251d38;color:white;font-weight:800}.engine-status{color:var(--muted);font-size:11px;margin:7px 2px 0}
+    :focus-visible{outline:3px solid var(--gold);outline-offset:2px}@media(min-width:700px){body{padding:25px 0}.app{border:1px solid #243a2e;border-radius:34px;overflow:hidden;box-shadow:0 40px 100px #000}.dock{bottom:22px}}
+  </style>
 </head>
 <body>
   <div class="app">
-    <aside class="sidebar hidden">
-      <div class="sidebar-header">
-        <div class="logo"><span class="logo-mark">G4</span><span>Gemma 4 Local</span></div>
-        <button class="new-chat-btn" id="newChatBtn" type="button" aria-label="New conversation">+</button>
-      </div>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="Gemstone Mountain home"><span class="mark" aria-hidden="true"></span><span>Gemstone Mountain</span></a>
+      <button class="icon-btn" id="menuButton" aria-label="Open menu" aria-controls="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </header>
 
-      <section class="engine-settings" aria-labelledby="engineHeading">
-        <h2 id="engineHeading">Local engine</h2>
-        <label for="endpointInput">llama-server address</label>
-        <input id="endpointInput" value="http://127.0.0.1:8080/v1" inputmode="url" autocomplete="off" spellcheck="false">
-        <label for="modelSelect">Gemma profile</label>
-        <select id="modelSelect">
-          <option value="gemma-4-E2B-it">Gemma 4 E2B — phone/light</option>
-          <option value="gemma-4-E4B-it">Gemma 4 E4B — balanced</option>
-          <option value="gemma-4-12B-it">Gemma 4 12B</option>
-          <option value="gemma-4-26B-A4B-it">Gemma 4 26B A4B</option>
-          <option value="gemma-4-31B-it">Gemma 4 31B</option>
-        </select>
-        <button id="connectBtn" class="connect-btn" type="button">Check local engine</button>
-        <p id="connectionStatus" class="status" role="status"><span></span>Not checked</p>
-        <label class="research-toggle"><input id="researchToggle" type="checkbox" checked> Ground replies with free research</label>
-        <p id="researchStatus" class="research-status" role="status">Research ready · Wikipedia · Wikidata · DuckDuckGo</p>
-        <p class="engine-note">No Google API key is used. Your messages go only to the local address above.</p>
+    <main id="top">
+      <section class="hero">
+        <div class="hero-gem" aria-hidden="true"></div>
+        <span class="eyebrow"><i></i> Verzazio wholesale loose gemstones</span>
+        <h1>A mountain of gems. Easy to explore.</h1>
+        <p>A clean, phone-first doorway to affordable natural gemstone lots from Verzazio—mixed gems, citrine, amethyst, onyx, quartz, rough stones, and more.</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="https://www.ebay.com/str/verzaziojewelers" target="_blank" rel="noopener">Shop on eBay <span>↗</span></a>
+          <a class="btn secondary" href="#contact">Call an office</a>
+        </div>
       </section>
 
-      <div class="sidebar-footer">
-        <strong>Start the engine first</strong>
-        <code>./start-gemma.sh</code>
-      </div>
-    </aside>
+      <section class="trust" aria-label="Company highlights">
+        <div><b>88K</b><span>eBay items sold*</span></div>
+        <div><b>100%</b><span>eBay positive*</span></div>
+        <div><b>4.9</b><span>Etsy rating*</span></div>
+      </section>
 
-    <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
+      <section class="story">
+        <span class="eyebrow">Built from real buying experience</span>
+        <h2>Natural stones people can actually afford.</h2>
+        <p>After working around a gold mine where both customers and sellers struggled to find satisfying gemstones, Kris searched eBay for a more genuine source and found Verzazio. <strong>Gemstone Mountain exists to make that discovery much easier to see and use on a phone.</strong></p>
+      </section>
 
-    <main class="chat-area">
-      <header class="chat-header">
-        <button class="menu-btn" id="menuBtn" type="button" aria-label="Toggle settings">☰</button>
-        <span class="chat-header-title">Infinity AI · Gemma 4</span>
-        <span class="model-badge" id="modelBadge">Local engine</span>
-      </header>
+      <div class="section-head" id="shop"><h2>Explore gemstones</h2><a href="https://www.ebay.com/str/verzaziojewelers" target="_blank" rel="noopener">See all on eBay ↗</a></div>
+      <section class="stone-grid" aria-label="Gemstone categories">
+        <a class="stone round" href="https://www.ebay.com/str/verzaziojewelers?_nkw=mixed+gemstones" target="_blank" rel="noopener"><small>Colorful parcels</small><div><strong>Mixed lots</strong><br><em>Faceted natural gems</em></div></a>
+        <a class="stone fancy" href="https://www.ebay.com/str/verzaziojewelers?_nkw=amethyst" target="_blank" rel="noopener"><small>Purple quartz</small><div><strong>Amethyst</strong><br><em>Lots and single stones</em></div></a>
+        <a class="stone yellow" href="https://www.ebay.com/str/verzaziojewelers?_nkw=citrine" target="_blank" rel="noopener"><small>Golden color</small><div><strong>Citrine</strong><br><em>Mixed cuts and sizes</em></div></a>
+        <a class="stone exceptional" href="https://www.etsy.com/shop/Verzazio?section_id=1" target="_blank" rel="noopener"><small>Natural material</small><div><strong>Rough gems</strong><br><em>Jewelry and lapidary lots</em></div></a>
+        <a class="stone round" href="https://www.ebay.com/str/verzaziojewelers?_nkw=diamond+parcel" target="_blank" rel="noopener"><small>Check current stock</small><div><strong>Diamond parcels</strong><br><em>Loose natural diamond search</em></div></a>
+        <a class="stone fancy" href="https://www.verzazio.com/" target="_blank" rel="noopener"><small>Learn before buying</small><div><strong>Gem guides</strong><br><em>Charts, clarity and policies</em></div></a>
+      </section>
 
-      <div class="messages" id="messages" aria-live="polite">
-        <div class="welcome" id="welcome">
-          <div class="welcome-icon">G4</div>
-          <h1>Local Gemma is wired in</h1>
-          <p>This chat talks to Gemma 4 running on your own device through llama.cpp. It does not require a Google API key.</p>
-          <div class="suggestions">
-            <button class="suggestion-chip" data-text="Explain what you can do while running locally.">What can you do?</button>
-            <button class="suggestion-chip" data-text="Help me inspect and improve a website without changing its intended design.">Improve a website</button>
-            <button class="suggestion-chip" data-text="Summarize this project plan into the next three concrete tasks.">Plan next work</button>
-          </div>
-        </div>
-      </div>
+      <aside class="notice"><b>Know your lot:</b> lower-priced parcels may contain small, included, treated, chipped, or commercial-grade stones. Read each listing’s exact type, treatment, measurements, condition, origin, returns, and shipping details before buying.</aside>
 
-      <div class="input-bar-wrap">
-        <div class="input-bar">
-          <textarea id="userInput" placeholder="Message local Gemma 4…" rows="1" maxlength="32000" aria-label="Message input"></textarea>
-          <button class="send-btn" id="sendBtn" type="button" aria-label="Send message" disabled>➤</button>
-        </div>
-        <p class="disclaimer">Local AI can make mistakes. Verify important information.</p>
-      </div>
+      <div class="section-head" id="contact"><h2>Talk to a real office</h2><a href="mailto:info@ankitgems.com">Email HQ</a></div>
+      <section class="office-list">
+        <article class="office">
+          <div class="office-top"><h3>New York</h3><span class="flag" aria-label="United States">🇺🇸</span></div>
+          <p class="address">6 North Boulevard<br>Gloversville, NY 12078</p>
+          <div class="quick"><a href="tel:+15187525739">Call office</a><a href="https://www.ebay.com/cnt/intermediatedFAQ?requested=verzazio" target="_blank" rel="noopener">eBay message</a><a href="https://maps.google.com/?q=6+North+Boulevard+Gloversville+NY+12078" target="_blank" rel="noopener">Open map</a><a href="https://www.etsy.com/shop/Verzazio" target="_blank" rel="noopener">Etsy message</a></div>
+        </article>
+        <article class="office">
+          <div class="office-top"><h3>Sicily, Italy</h3><span class="flag" aria-label="Italy">🇮🇹</span></div>
+          <p class="address">Piazza Pellini, 14<br>90040 Montelepre, Palermo, Italy</p>
+          <div class="quick"><a href="tel:+39091334382">Call office</a><a href="https://www.verzazio.com/" target="_blank" rel="noopener">Official site</a><a href="https://maps.google.com/?q=Piazza+Pellini+14+90040+Montelepre+Palermo+Italy" target="_blank" rel="noopener">Open map</a><a href="https://www.etsy.com/shop/Verzazio" target="_blank" rel="noopener">Etsy message</a></div>
+        </article>
+      </section>
+
+      <p class="market-note">Office details above come from public business listings; contact the seller before planning an in-person visit.</p>
+
+      <div class="section-head" id="links"><h2>Shop Verzazio</h2><a href="https://www.verzazio.com/" target="_blank" rel="noopener">Official site ↗</a></div>
+      <section class="link-list">
+        <a class="link-row" href="https://www.ebay.com/str/verzaziojewelers" target="_blank" rel="noopener"><span class="link-icon">e</span><span class="link-copy"><b>VERZAZIO Jewelers on eBay</b><span>Official store · loose gemstones</span></span><span class="chev">›</span></a>
+        <a class="link-row" href="https://www.etsy.com/shop/Verzazio" target="_blank" rel="noopener"><span class="link-icon">E</span><span class="link-copy"><b>Verzazio on Etsy</b><span>Official shop · lots and rough gems</span></span><span class="chev">›</span></a>
+        <a class="link-row" href="https://www.verzazio.com/" target="_blank" rel="noopener"><span class="link-icon">V</span><span class="link-copy"><b>Verzazio.com</b><span>Company website and gemstone guides</span></span><span class="chev">›</span></a>
+        <a class="link-row" href="https://www.ebay.com/str/verzaziojewelers?_nkw=wholesale+gemstones" target="_blank" rel="noopener"><span class="link-icon">◇</span><span class="link-copy"><b>Wholesale gemstone lots</b><span>Search Verzazio’s eBay store</span></span><span class="chev">›</span></a>
+      </section>
+      <p class="market-note">*Marketplace figures are a current snapshot and can change. eBay showed 88K items sold and 100% positive feedback; Etsy showed a 4.9 average rating and about 2.8K sales when checked.</p>
+
+      <footer>Independent mobile directory concept. Gemstone Mountain is not presented as an official Verzazio property. Purchases take place on Verzazio’s linked stores.</footer>
     </main>
+
+    <nav class="dock" aria-label="Main navigation">
+      <a href="#shop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 7 5-2.7 9H7.7L5 8l7-5Z"/><path d="m5 8 7 4 7-4"/></svg><span>Stones</span></a>
+      <a href="#links"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg><span>Links</span></a>
+      <a href="#contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h4l2 5-3 2a15 15 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2C9 21 3 15 3 6a2 2 0 0 1 2-2Z"/></svg><span>Contact</span></a>
+    </nav>
   </div>
-  <script src="research.js"></script>
-  <script src="app.js"></script>
-<script src="https://www-infinity4.github.io/Mint-For-Infinity/infinity-wallet-menu.js?v=20260814-menu2"></script></body>
+
+  <dialog id="menu">
+    <div class="sheet-head"><h2>Gemstone Mountain</h2><button class="icon-btn" id="closeMenu" aria-label="Close menu">×</button></div>
+    <nav class="menu-links"><a href="#shop">Explore gemstones</a><a href="#contact">New York & Sicily contacts</a><a href="#links">eBay, Etsy & official site</a><a href="https://www.ebay.com/str/verzaziojewelers" target="_blank" rel="noopener">Shop Verzazio on eBay ↗</a></nav>
+    <p class="fine">Tap outside this panel or press Escape to close.</p>
+  </dialog>
+  <button class="gemma-fab" id="gemmaButton" aria-label="Ask Gemma gem guide">G<span>GEMMA</span></button>
+  <dialog id="gemma" class="gemma-sheet">
+    <div class="sheet-head"><h2>Gemma Gem Guide</h2><button class="icon-btn" id="closeGemma" aria-label="Close Gemma">×</button></div>
+    <p class="gemma-intro">Ask about Verzazio, gemstone lots, treatments, diamond parcels, or what to check before buying.</p>
+    <div class="gemma-chips" aria-label="Suggested questions">
+      <button data-gem-question="Which mixed lot should I start with?">First mixed lot</button>
+      <button data-gem-question="What should I know about diamond parcels?">Diamond parcels</button>
+      <button data-gem-question="How do I check if a stone is natural?">Check natural gems</button>
+      <button data-gem-question="Explain treatments and commercial grade.">Treatments</button>
+    </div>
+    <div class="gemma-answer" id="gemmaAnswer" aria-live="polite"><b>Gemma is ready.</b> The instant guide works on the page without a login, key, or model download. Ask a gemstone question below.</div>
+    <form class="gemma-input" id="gemmaForm">
+      <input id="gemmaInput" placeholder="Ask about a gem or parcel…" autocomplete="off" aria-label="Question for Gemma">
+      <button>Ask</button>
+    </form>
+    <details class="engine-box">
+      <summary>Optional local Gemma model</summary>
+      <div class="engine-row"><input id="gemmaEndpoint" value="http://127.0.0.1:8080/v1" aria-label="Local Gemma endpoint"><button id="gemmaConnect" type="button">Connect</button></div>
+      <p class="engine-status" id="gemmaStatus">Instant guide is active. A local model is optional and must be running on this device.</p>
+    </details>
+  </dialog>
+  <script>
+    const menu=document.querySelector('#menu');
+    document.querySelector('#menuButton').addEventListener('click',()=>menu.showModal());
+    document.querySelector('#closeMenu').addEventListener('click',()=>menu.close());
+    menu.addEventListener('click',e=>{if(e.target===menu)menu.close()});
+    menu.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',()=>menu.close()));
+    const gemma=document.querySelector('#gemma');
+    const gemmaAnswer=document.querySelector('#gemmaAnswer');
+    const gemmaInput=document.querySelector('#gemmaInput');
+    let localGemmaOnline=false;
+    document.querySelector('#gemmaButton').addEventListener('click',()=>gemma.showModal());
+    document.querySelector('#closeGemma').addEventListener('click',()=>gemma.close());
+    gemma.addEventListener('click',e=>{if(e.target===gemma)gemma.close()});
+    document.querySelectorAll('[data-gem-question]').forEach(button=>button.addEventListener('click',()=>askGemma(button.dataset.gemQuestion)));
+    document.querySelector('#gemmaForm').addEventListener('submit',event=>{event.preventDefault();askGemma(gemmaInput.value)});
+    document.querySelector('#gemmaConnect').addEventListener('click',connectGemma);
+
+    async function connectGemma(){
+      const status=document.querySelector('#gemmaStatus');
+      const base=document.querySelector('#gemmaEndpoint').value.trim().replace(/\/+$/,'');
+      status.textContent='Checking local model…';
+      try{const response=await fetch(base+'/models');if(!response.ok)throw new Error();localGemmaOnline=true;status.textContent='Local Gemma connected. Questions now use the model with Gemstone Mountain guidance.'}
+      catch{localGemmaOnline=false;status.textContent='Local model not found. The built-in Gemma gem guide is still active.'}
+    }
+    async function askGemma(question){
+      question=(question||'').trim();if(!question)return;
+      gemmaInput.value='';gemmaAnswer.textContent='Gemma is checking that…';
+      if(localGemmaOnline){
+        try{
+          const base=document.querySelector('#gemmaEndpoint').value.trim().replace(/\/+$/,'');
+          const response=await fetch(base+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'gemma',messages:[{role:'system',content:'You are Gemma, the concise gemstone buying guide inside Gemstone Mountain. Help people understand natural gemstones, treatments, lots, testing and the linked Verzazio shops. Never guarantee authenticity, investment value, inventory or seller claims. Tell users to verify the exact listing and use an independent gemologist for important purchases.'},{role:'user',content:question}],temperature:.4,max_tokens:500})});
+          if(!response.ok)throw new Error();const data=await response.json();const answer=data?.choices?.[0]?.message?.content;if(!answer)throw new Error();gemmaAnswer.textContent=answer;return;
+        }catch{localGemmaOnline=false;document.querySelector('#gemmaStatus').textContent='Local model disconnected. Switched back to the built-in guide.'}
+      }
+      gemmaAnswer.innerHTML=builtInGemGuide(question);
+    }
+    function builtInGemGuide(question){
+      const q=question.toLowerCase();
+      if(/diamond|parcel/.test(q))return '<b>Diamond parcels:</b> Verzazio advertises loose diamond parcels on its company site, including natural colored diamonds. Current eBay stock can change, so use the Diamond Parcels card and inspect every listing for total carat weight, color, clarity, treatment, certification, returns and whether the pictured parcel is the exact parcel sold.';
+      if(/natural|real|authentic|test|glass/.test(q))return '<b>Checking a natural gem:</b> Photos, price and a seller description cannot prove identity. Start with the listing’s species, treatment, origin and return terms. For an important purchase, ask an independent gemologist to use appropriate tests such as refractive index, magnification and spectroscopy. Do not rely on a single handheld tester.';
+      if(/treat|commercial|chip|included|quality/.test(q))return '<b>Read the grade carefully:</b> Commercial-grade parcels may be genuine material while still being pale, heavily included, treated, windowed, scratched or chipped. That can be useful for practice, crafts and inexpensive jewelry, but it is different from fine-gem quality. Match the listing details to your intended use.';
+      if(/mixed|first|start|begin|cheap|afford|lot/.test(q))return '<b>Good starting point:</b> Begin with a smaller mixed faceted lot from the official eBay or Etsy shop. It lets you compare colors, cuts and inclusions without committing to one expensive stone. Choose a listing with clear carat weight, size range, treatment notes, recent feedback and returns.';
+      if(/amethyst/.test(q))return '<b>Amethyst:</b> A durable quartz variety and an approachable choice for learning settings and inspecting cut quality. Compare the listing’s color evenness, windowing, inclusions, dimensions and treatment disclosure—not carat weight alone.';
+      if(/citrine|quartz/.test(q))return '<b>Citrine and quartz:</b> Usually affordable and useful for practice or colorful jewelry. Much commercial citrine is heat-treated quartz, so read the treatment field. Look for an attractive cut, usable dimensions and honest disclosure rather than assuming low price means poor material.';
+      if(/office|address|phone|italy|sicily|new york|gloversville/.test(q))return '<b>Contact first:</b> The page lists public business information for Gloversville, New York and Montelepre, Sicily. Call or message through eBay or Etsy before planning a visit because public directory details and office availability can change.';
+      if(/ebay|etsy|buy|shop|verzazio/.test(q))return '<b>Use the direct shop buttons:</b> This page links to VERZAZIO Jewelers on eBay and Verzazio on Etsy. Complete the purchase on the marketplace so its current listing details, seller feedback, payment protections and return rules remain visible.';
+      return '<b>I can help narrow it down.</b> Ask about mixed lots, amethyst, citrine, rough stones, treatments, natural-gem testing, diamond parcels, Verzazio’s stores, or what details to inspect before buying.';
+    }
+  </script>
+</body>
 </html>
